@@ -24,43 +24,54 @@ def conjugate_gradient(A: np.ndarray, b: np.ndarray, x0: np.ndarray, tolerance: 
     # Set iteration limit
     max_iter: int = max_iterations if max_iterations is not None else n
 
-    # Compute true solution (Ryan's feature)
+    # Compute true solution
     x_star: np.ndarray = np.linalg.solve(A, b)
 
     # Initialize variables
-    x: np.ndarray = x0.copy()           # Current solution
-    r: np.ndarray = b - A @ x           # Initial residual
-    p: np.ndarray = r.copy()            # Initial search direction
-    iterates: np.ndarray = np.zeros((max_iter + 1, n))  # Track all iterates (Ryan's approach)
+    x: np.ndarray = x0.copy()
+    r: np.ndarray = b - A @ x
+    p: np.ndarray = r.copy()
+    iterates: np.ndarray = np.zeros((max_iter + 1, n))
     iterates[0, :] = x
-    rTr_old: float = r @ r              # Previous residual norm squared
+    rTr_old: float = r @ r
 
     # Iteration loop
     k: int = 0
     while k < max_iter:
-        # Check residual convergence (Saptoka's standard)
         if np.linalg.norm(r) < tolerance:
             return x, iterates[:k + 1, :], k + 1, x_star
 
-        # Step size computation
-        Ap: np.ndarray = A @ p          # Matrix-vector product
-        alpha: float = rTr_old / (p @ Ap)  # Optimal step length
+        # Step size computation with numerical stability
+        Ap: np.ndarray = A @ p
+        pAp: float = p @ Ap
+        if pAp <= 0:
+            raise ValueError("A not positive-definite.")
+        alpha: float = rTr_old / pAp
 
         # Update solution and store iterate
         x = x + alpha * p
         iterates[k + 1, :] = x
 
         # Update residual
-        r = r - alpha * Ap
-        rTr_new: float = r @ r          # New residual norm squared
+        r_new: np.ndarray = r - alpha * Ap
+        rTr_new: float = r_new @ r_new
 
-        # Compute beta for next direction
-        beta: float = rTr_new / rTr_old  # Direction adjustment
-        p = r + beta * p                # Update search direction
+        # Compute beta with numerical safeguard
+        if rTr_old < 1e-15:
+            beta = 0
+        else:
+            beta = rTr_new / rTr_old
+
+        # Update direction with orthogonalization to previous direction
+        p_new = r_new + beta * p
+        # Orthogonalize p_new against previous p to reduce numerical error
+        if k > 0:
+            p_new -= (p_new @ Ap / pAp) * p
+        p = p_new
 
         # Prepare next iteration
+        r = r_new
         rTr_old = rTr_new
         k += 1
 
-    # Max iterations reached
     return x, iterates[:k + 1, :], k, x_star

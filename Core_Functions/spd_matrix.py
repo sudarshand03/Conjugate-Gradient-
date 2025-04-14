@@ -22,7 +22,13 @@ def generate_spd_matrix(n: int, condition_number: float = 10.0, eigenvalues: Opt
     if eigenvalues is None:
         eig_vals: np.ndarray = np.linspace(1, condition_number, n)
     else:
-        eig_vals = np.array(eigenvalues) if len(eigenvalues) >= n else np.tile(eigenvalues, (n + len(eigenvalues) - 1) // len(eigenvalues))[:n]
+        # Ensure eigenvalues are positive and exactly n in length
+        eig_vals = np.array(eigenvalues, dtype=np.float64)
+        if len(eig_vals) != n:
+            # Repeat eigenvalues to match n exactly
+            eig_vals = np.tile(eig_vals, (n // len(eig_vals)) + 1)[:n]
+        if np.any(eig_vals <= 0):
+            raise ValueError("Eigenvalues must be positive.")
     
     # Create diagonal matrix and compute A
     D: np.ndarray = np.diag(eig_vals)

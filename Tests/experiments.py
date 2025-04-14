@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from Core_Functions.spd_generate import generate_spd_matrix
+from Core_Functions.spd_matrix import generate_spd_matrix
 from Core_Functions.steepest_descent import steepest_descent
 from Core_Functions.conjugate_gradient import conjugate_gradient
 import time
@@ -55,7 +55,7 @@ def eigenvalue_test(n: int, eigenvalues: list, tolerance: float = 1e-8, max_iter
         max_iter (int): Maximum iterations.
 
     Returns:
-        Tuple: CG iterations, final residual.
+        Tuple: CG iterations at convergence, final residual at convergence.
     """
     A: np.ndarray = generate_spd_matrix(n, eigenvalues=eigenvalues)
     b: np.ndarray = np.random.randn(n)
@@ -63,8 +63,11 @@ def eigenvalue_test(n: int, eigenvalues: list, tolerance: float = 1e-8, max_iter
     x_cg, iterates_cg, iters_cg, x_star = conjugate_gradient(A, b, x0, tolerance, max_iter)
     residuals_cg: list = [np.linalg.norm(b - A @ x_k) for x_k in iterates_cg]
 
+    # Find the iteration where residual first drops below tolerance
+    actual_iters = next(i for i, res in enumerate(residuals_cg) if res < tolerance)
+
     plt.figure(figsize=(10, 6))
-    plt.semilogy(residuals_cg, label='Conjugate Gradient', color='tab:green', marker='^', markevery=max(1, iters_cg//5))
+    plt.semilogy(residuals_cg, label='Conjugate Gradient', color='tab:green', marker='^', markevery=max(1, actual_iters//5))
     plt.xlabel('Iteration')
     plt.ylabel('Residual Norm ($||r_k||$)')
     plt.title(f'CG with Eigenvalues: {eigenvalues}')
@@ -73,7 +76,7 @@ def eigenvalue_test(n: int, eigenvalues: list, tolerance: float = 1e-8, max_iter
     plt.savefig(f"cg_eig_n{n}.png", dpi=300)
     plt.close()
 
-    return iters_cg, residuals_cg[-1]
+    return actual_iters, residuals_cg[actual_iters]
 
 if __name__ == "__main__":
     # Small-scale test
