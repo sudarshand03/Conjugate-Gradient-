@@ -71,12 +71,18 @@ def test_mvot(n: int, condition_number: float, mu_p: float = 0.1, tolerance: flo
     A_reduced, b_reduced, x0, y0, Z = build_mvot_system(Sigma,mu,mu_p,n)
 
     # Solve using Steepest Descent
+    start_sd = time.perf_counter()
     y_sd, _, iters_sd, _ = steepest_descent(A_reduced, b_reduced, y0, tolerance=1e-10, max_iterations=10000)
     x_sd = x0 + Z @ y_sd
+    end_sd = time.perf_counter()
+    time_sd = end_sd - start_sd
 
     # Solve using Conjugate Gradient
+    start_cg = time.perf_counter()
     y_cg, _, iters_cg, _ = conjugate_gradient(A_reduced, b_reduced, y0, tolerance=1e-10, max_iterations=10000)
     x_cg = x0 + Z @ y_cg
+    end_cg = time.perf_counter()
+    time_cg = end_cg - start_cg
 
     return {"Portfolio Weights (sd):": x_sd.flatten(),
             "Portfolio Weights (cg):": x_cg.flatten(),
@@ -89,7 +95,9 @@ def test_mvot(n: int, condition_number: float, mu_p: float = 0.1, tolerance: flo
             "Sum of Weights (sd):": np.sum(x_sd),
             "Sum of Weights (cg):": np.sum(x_cg),
             "Weight Sum Error (sd):": abs(np.sum(x_sd) - 1.0),
-            "Weight Sum Error (cg):": abs(np.sum(x_cg) - 1.0)}
+            "Weight Sum Error (cg):": abs(np.sum(x_cg) - 1.0),
+            "Time to converge (sd):": time_sd,
+            "Time to converge (cg):": time_cg}
 
 def test_mvot_real(tickers: list, n: int, condition_number: float, mu_p: float = 0.1, tolerance: float = 1e-8, max_iter: int = 10000):
     """
@@ -128,12 +136,18 @@ def test_mvot_real(tickers: list, n: int, condition_number: float, mu_p: float =
     A_reduced, b_reduced, x0, y0, Z = build_mvot_system(Sigma,mu,mu_p,n)
 
     # Solve using Steepest Descent
+    start_sd = time.perf_counter()
     y_sd, _, iters_sd, _ = steepest_descent(A_reduced, b_reduced, y0, tolerance=1e-10, max_iterations=10000)
     x_sd = x0 + Z @ y_sd
+    end_sd = time.perf_counter()
+    time_sd = end_sd - start_sd
 
     # Solve using Conjugate Gradient
+    start_cg = time.perf_counter()
     y_cg, _, iters_cg, _ = conjugate_gradient(A_reduced, b_reduced, y0, tolerance=1e-10, max_iterations=10000)
     x_cg = x0 + Z @ y_cg
+    end_cg = time.perf_counter()
+    time_cg = end_cg - start_cg
 
     return {"Portfolio Weights (sd):": x_sd.flatten(),
             "Portfolio Weights (cg):": x_cg.flatten(),
@@ -146,7 +160,9 @@ def test_mvot_real(tickers: list, n: int, condition_number: float, mu_p: float =
             "Sum of Weights (sd):": np.sum(x_sd),
             "Sum of Weights (cg):": np.sum(x_cg),
             "Weight Sum Error (sd):": abs(np.sum(x_sd) - 1.0),
-            "Weight Sum Error (cg):": abs(np.sum(x_cg) - 1.0)}
+            "Weight Sum Error (cg):": abs(np.sum(x_cg) - 1.0),
+            "Time to converge (sd):": time_sd,
+            "Time to converge (cg):": time_cg}
 
 def eigenvalue_test(n: int, eigenvalues: list, tolerance: float = 1e-8, max_iter: int = 10000):
     """
@@ -264,8 +280,8 @@ if __name__ == "__main__":
     for n in n_mvot:
         result = test_mvot(n, condition_number=100)
         print(f"\nSynthetic MVOT Result (n={n}, κ=100):")
-        print(f"  SD -> iters: {result['Iterations (sd):']} | μᵀx: {result['Expected Return (sd):']:.4f} | err: {result['Expected Return Error (sd):']:.2e} | Σx={result['Sum of Weights (sd):']:.4f} | err: {result['Weight Sum Error (sd):']:.2e}")
-        print(f"  CG -> iters: {result['Iterations (cg):']} | μᵀx: {result['Expected Return (cg):']:.4f} | err: {result['Expected Return Error (cg):']:.2e} | Σx={result['Sum of Weights (cg):']:.4f} | err: {result['Weight Sum Error (cg):']:.2e}")
+        print(f"  SD -> iters: {result['Iterations (sd):']} | time: {result['Time to converge (sd):']} | μᵀx: {result['Expected Return (sd):']:.4f} | err: {result['Expected Return Error (sd):']:.2e} | Σx={result['Sum of Weights (sd):']:.4f} | err: {result['Weight Sum Error (sd):']:.2e}")
+        print(f"  CG -> iters: {result['Iterations (cg):']} | time: {result['Time to converge (cg):']} | μᵀx: {result['Expected Return (cg):']:.4f} | err: {result['Expected Return Error (cg):']:.2e} | Σx={result['Sum of Weights (cg):']:.4f} | err: {result['Weight Sum Error (cg):']:.2e}")
         print(f"  Weights (SD): {np.round(result['Portfolio Weights (sd):'], 4)}")
         print(f"  Weights (CG): {np.round(result['Portfolio Weights (cg):'], 4)}")
 
@@ -281,7 +297,7 @@ if __name__ == "__main__":
     for n in n_mvot_real:
         result = test_mvot_real(tickers[:n], n, condition_number=100)
         print(f"\nReal MVOT Result (n={n}, κ=100):")
-        print(f"  SD -> iters: {result['Iterations (sd):']} | μᵀx: {result['Expected Return (sd):']:.4f} | err: {result['Expected Return Error (sd):']:.2e} | Σx={result['Sum of Weights (sd):']:.4f} | err: {result['Weight Sum Error (sd):']:.2e}")
-        print(f"  CG -> iters: {result['Iterations (cg):']} | μᵀx: {result['Expected Return (cg):']:.4f} | err: {result['Expected Return Error (cg):']:.2e} | Σx={result['Sum of Weights (cg):']:.4f} | err: {result['Weight Sum Error (cg):']:.2e}")
+        print(f"  SD -> iters: {result['Iterations (sd):']} | time: {result['Time to converge (sd):']} | μᵀx: {result['Expected Return (sd):']:.4f} | err: {result['Expected Return Error (sd):']:.2e} | Σx={result['Sum of Weights (sd):']:.4f} | err: {result['Weight Sum Error (sd):']:.2e}")
+        print(f"  CG -> iters: {result['Iterations (cg):']} | time: {result['Time to converge (cg):']} | μᵀx: {result['Expected Return (cg):']:.4f} | err: {result['Expected Return Error (cg):']:.2e} | Σx={result['Sum of Weights (cg):']:.4f} | err: {result['Weight Sum Error (cg):']:.2e}")
         print(f"  Weights (SD): {np.round(result['Portfolio Weights (sd):'], 4)}")
         print(f"  Weights (CG): {np.round(result['Portfolio Weights (cg):'], 4)}")
