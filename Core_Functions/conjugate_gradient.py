@@ -48,11 +48,9 @@ def conjugate_gradient(A: np.ndarray, b: np.ndarray, x0: np.ndarray, tolerance: 
     rTr_old: float = r @ r  # Initial residual norm squared
 
     k: int = 0
+    
     while k < max_iter:
         # Check convergence
-        if np.linalg.norm(r) < tolerance:
-            return x, iterates[:k + 1, :], k + 1, x_star
-
         # Compute step size alpha
         Ap: np.ndarray = A @ p
         pAp: float = p @ Ap
@@ -78,6 +76,8 @@ def conjugate_gradient(A: np.ndarray, b: np.ndarray, x0: np.ndarray, tolerance: 
         r = r_new
         rTr_old = rTr_new
         k += 1
+        if np.linalg.norm(r) < tolerance:
+            return x, iterates[:k + 1, :], k + 1, x_star
 
     # Return results if max iterations reached
     return x, iterates[:k + 1, :], k, x_star
