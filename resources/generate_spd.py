@@ -6,7 +6,6 @@ from typing import (
     Union,
     Tuple,
 )
-
 import numpy as np
 from numpy.random import Generator, default_rng
 from numpy import ndarray
@@ -34,9 +33,9 @@ def make_spd_matrix(
     Parameters
     ----------
     n_dim : int
-        Dimension of the SPD matrix (n_dim × n_dim).
+        Dimension of the SPD matrix (n_dim x n_dim).
     condition_number : float, optional
-        Desired κ = λ_max/λ_min.  If set (and `eigenvalues` is None),
+        Desired condition number  If set (and `eigenvalues` is None),
         generates `n_dim` eigenvalues in [1, κ] via `distribution`.
     eigenvalues : sequence of float, optional
         Exact positive eigenvalues to use (will be tiled/truncated to length n_dim).
@@ -80,8 +79,7 @@ def make_spd_matrix(
     elif cluster_centers is not None:
         # Must have sizes for each cluster
         if cluster_sizes is None or len(cluster_sizes) != len(cluster_centers):
-            raise ValueError(
-                "cluster_sizes must match cluster_centers length.")
+            raise ValueError("cluster_sizes must match cluster_centers length.")
         if sum(cluster_sizes) > n_dim:
             raise ValueError("Sum of cluster_sizes cannot exceed n_dim.")
         # Sample each cluster
@@ -124,6 +122,7 @@ def make_spd_matrix(
 
 
 if __name__ == "__main__":
+    import numpy as np
 
     # 1) Uniform spacing, κ=100
     A1 = make_spd_matrix(50, condition_number=100.0, distribution="linear", random_state=0)
