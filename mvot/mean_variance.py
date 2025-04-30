@@ -1,6 +1,6 @@
 from typing import Tuple, Optional
-from Core_Functions.steepest_descent import steepest_descent
-from Core_Functions.conjugate_gradient import conjugate_gradient
+from models.steepest_descent import steepest_descent
+from models.conjugate_gradient import conjugate_gradient
 import numpy as np
 from scipy.linalg import *
 

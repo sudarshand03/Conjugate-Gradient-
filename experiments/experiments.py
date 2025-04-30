@@ -1,11 +1,11 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from Core_Functions.conjugate_gradient import conjugate_gradient
-from Core_Functions.mean_variance import build_mvot_system, solve_mvot_sd, solve_mvot_cg
-from Core_Functions.ActiveManagement import fetch_stock_data, momentum_calculator, covariance_matrix_build
+from models.conjugate_gradient import conjugate_gradient
+from mvot.mean_variance import build_mvot_system, solve_mvot_sd, solve_mvot_cg
+from mvot.ActiveManagement import fetch_stock_data, momentum_calculator, covariance_matrix_build
 from scipy.linalg import *
-from Core_Functions.spd_generate import generate_spd_matrix
-from Core_Functions.steepest_descent import steepest_descent, plot_residual_diagram
+from resources.generate_spd import generate_spd_matrix
+from models.steepest_descent import steepest_descent, plot_residual_diagram
 import time
 import os
 
