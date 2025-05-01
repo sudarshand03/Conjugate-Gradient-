@@ -1,47 +1,34 @@
-# experiments/sd_convergence.py
+# experiments/convergence_sd.py
 
 import os
 import sys
 
-# 1) allow imports from project root
-project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
+# 1) Make project root importable
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 sys.path.insert(0, project_root)
 
 import numpy as np
 import matplotlib.pyplot as plt
+from numpy.linalg import norm
 
 from resources.generate_spd import make_spd_matrix
 from models.steepest_descent import steepest_descent
-from resources.plot_utils import apply_default_style
 
-def estimate_rate(residuals, burn_in=5):
-    """
-    Estimate asymptotic convergence rate r ≈ mean(‖r_{k+1}‖/‖r_k‖)
-    over the tail (after burn_in iterations).
-    """
-    ratios = [
-        residuals[k+1] / residuals[k]
-        for k in range(burn_in, len(residuals)-1)
-        if residuals[k] > 0
-    ]
-    return float(np.mean(ratios)) if ratios else np.nan
-
-def run_sd_experiments(
+def run_sd_residual_experiments(
     sizes=(10, 100, 1000),
     cond_nums=(10, 100, 1000, 10000),
-    tol=1e-8
+    tol: float = 1e-8,
+    max_iter: int = 5000
 ):
-    # make results dir
     results_dir = os.path.abspath("results")
     os.makedirs(results_dir, exist_ok=True)
 
-    apply_default_style()
-
     for n in sizes:
+        # 2) Create one figure & axis per n
         fig, ax = plt.subplots(figsize=(8, 6))
 
         for kappa in cond_nums:
-            # 2) build SPD test problem
+            # 3) Build SPD problem
             A = make_spd_matrix(
                 n_dim=n,
                 condition_number=float(kappa),
@@ -50,48 +37,47 @@ def run_sd_experiments(
             )
             rng = np.random.default_rng(42)
             b = rng.standard_normal(n)
-            b /= np.linalg.norm(b)
+            b /= norm(b)
             x0 = np.zeros(n)
 
-            # 3) run Steepest Descent
-            x_sd, history, its, _ = steepest_descent(
+            # 4) Run SD up to max_iter
+            x_final, history, its, x_star = steepest_descent(
                 A, b, x0,
                 tolerance=tol,
-                max_iterations=n,
+                max_iterations=max_iter,
                 store_history=True
             )
 
-            # 4) compute energy-norm residuals: ‖r‖_A = sqrt(rᵀ A r)
-            energy_res = []
-            for xk in history:
-                r = b - A.dot(xk)
-                energy_res.append(np.sqrt(r.dot(A.dot(r))))
+            # 5) Compute L2‐residuals at each iterate
+            res_norms = [norm(b - A.dot(xk)) for xk in history]
 
-            # 5) estimate rate
-            r_est = estimate_rate(energy_res)
-            print(f"n={n}, κ={kappa}: its={its}, rate≈{r_est:.3f}")
-
-            # 6) plot
+            # 6) Plot them all on the same axis
             ax.semilogy(
-                range(len(energy_res)),
-                energy_res,
-                marker='o',
+                np.arange(len(res_norms)),
+                res_norms,
+                marker=',',
                 linestyle='-',
-                label=f'κ={kappa}, r≈{r_est:.3f}'
+                label=f"κ={kappa}, iters={its}"
             )
 
-        ax.set_title(f'SD Convergence in Energy Norm (n={n})')
-        ax.set_xlabel('Iteration k')
-        ax.set_ylabel(r'$\|r_k\|_A = \sqrt{r_k^\top A\,r_k}$')
-        ax.grid(which='both', linestyle='--')
-        ax.legend(loc='best')
+        # 7) Tidy up the plot
+        ax.set_title(f"SD Residual Convergence (n={n})")
+        ax.set_xlabel("Iteration k")
+        ax.set_ylabel(r"$\|r_k\|_2 = \|b - A x_k\|_2$")
+        ax.grid(True, which="both", linestyle="--", alpha=0.6)
+        ax.legend(loc="best")
         fig.tight_layout()
 
-        # 7) save
-        out_file = os.path.join(results_dir, f'sd_convergence_n{n}.png')
-        fig.savefig(out_file, dpi=300)
+        # 8) Save & close
+        out_path = os.path.join(results_dir, f"sd_residuals_n{n}.png")
+        fig.savefig(out_path, dpi=300)
         plt.close(fig)
-        print(f"Saved plot for n={n} → {out_file}")
+        print(f"Saved: {out_path}")
 
 if __name__ == "__main__":
-    run_sd_experiments()
+    run_sd_residual_experiments(
+        sizes=(10, 100, 1000),
+        cond_nums=(10, 100, 1000),
+        tol=1e-8,
+        max_iter=50000
+    )
