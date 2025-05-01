@@ -11,15 +11,15 @@ sys.path.insert(0, project_root)
 
 # 2) Bring in our modules
 from resources.generate_spd import make_spd_matrix
-from models.steepest_descent import steepest_descent, compute_residual_history, verify_orthogonality_and_plot
+from models.steepest_descent import steepest_descent
 from resources.plot_utils import apply_default_style, plot_semilogy, save_plot
 
 def main() -> None:
     # Problem parameters
-    n = 200
+    n = 5
     seed = 42
     tol = 1e-8
-    kappa = 1e3  # condition number for test SPD matrix
+    kappa = 10  # condition number for test SPD matrix
 
     # 3) Generate test matrix and RHS
     A = make_spd_matrix(n_dim=n, condition_number=kappa, distribution="log", random_state=seed)
@@ -33,7 +33,7 @@ def main() -> None:
     x_approx, iterates, iterations, x_exact = steepest_descent(
         A, b, x0,
         tolerance=tol,
-        max_iterations=n,
+        max_iterations=1000,
         store_history=True               # record iterates
     )
     elapsed = time.perf_counter() - start
@@ -46,19 +46,10 @@ def main() -> None:
         residuals,
         label=f"SD (n={n}, κ={int(kappa)})",
         xlabel="Iteration",
-        ylabel="Residual ‖b – A xₖ‖₂",
+        ylabel="Residual",
         title="Steepest Descent Convergence"
     )
     save_plot(f"sd_convergence_n{n}_kappa{int(kappa)}.png")
-
-    # 6) Verify orthogonality and plot residual vectors
-    #    This will print ⟨r_{k-1},r_k⟩ to console and save a quiver plot
-    verify_orthogonality_and_plot(
-        A,
-        b,
-        iterates,
-        filename=f"sd_orthogonality_n{n}.png"
-    )
 
 if __name__ == "__main__":
     main()

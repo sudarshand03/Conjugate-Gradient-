@@ -15,6 +15,11 @@ Requirements
 """
 
 import os
+import sys
+
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+sys.path.insert(0, project_root)
+
 import time
 from typing import Dict, List
 
@@ -28,7 +33,7 @@ from mvot.ActiveManagement import (
     momentum_calculator,
     covariance_matrix_build,
 )
-from resources.generate_spd import generate_spd_matrix
+from mvot.spd_generate import generate_spd_matrix
 
 
 # -----------------------------------------------------------------------------#
