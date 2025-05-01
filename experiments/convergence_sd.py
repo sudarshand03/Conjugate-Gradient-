@@ -1,5 +1,4 @@
 # experiments/convergence_sd.py
-
 import os
 import sys
 
@@ -79,5 +78,5 @@ if __name__ == "__main__":
         sizes=(10, 100, 1000),
         cond_nums=(10, 100, 1000),
         tol=1e-8,
-        max_iter=50000
+        max_iter=5000
     )
