@@ -11,7 +11,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from numpy.linalg import norm
 
-from resources.generate_spd import make_spd_matrix
+from resources.generate_spd import generate_spd
 from models.steepest_descent import steepest_descent
 
 def run_sd_residual_experiments(
@@ -35,10 +35,10 @@ def run_sd_residual_experiments(
 
         for kappa in cond_nums:
             # 3) Build SPD problem
-            A = make_spd_matrix(
+            A = generate_spd(
                 n_dim=n,
                 condition_number=float(kappa),
-                distribution="linear",
+                distribution="log",
                 random_state=42
             )
             rng = np.random.default_rng(42)

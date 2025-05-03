@@ -1,5 +1,5 @@
 import numpy as np, matplotlib.pyplot as plt
-from resources.generate_spd import make_spd_matrix
+from resources.generate_spd import generate_spd_distinct5, generate_spd_5clusters
 from models.conjugate_gradient import conjugate_gradient
 
 def cg_residuals(A, b, tol=1e-10, maxiter=None):
@@ -13,17 +13,15 @@ rng = np.random.default_rng(42)
 b = rng.standard_normal(n); b /= np.linalg.norm(b)
 
 # 5 distinct eigenvalues spread out
-A1 = make_spd_matrix(n_dim=n, eigenvalues=[1, 10, 100, 1000, 10000], random_state=42)
+A1 = generate_spd_distinct5(n_dim=n, eigenvalues=[1, 10, 100, 1000, 10000], random_state=42)
 res1 = cg_residuals(A1, b)
 
 # 5 tight clusters with large gaps
-centers = [1, 10, 100, 1000, 10000]
-sizes = [n//5]*5
-A2 = make_spd_matrix(n_dim=n,
-                     cluster_centers=centers,
-                     cluster_sizes=sizes,
-                     cluster_std=0.001,  # Much tighter clusters
-                     random_state=42)
+A2 = generate_spd_5clusters(n_dim=n,
+                          low=1.0,
+                          high=10000.0,
+                          cluster_std=0.001,  # Much tighter clusters
+                          random_state=42)
 res2 = cg_residuals(A2, b)
 
 plt.figure(figsize=(10, 6))
