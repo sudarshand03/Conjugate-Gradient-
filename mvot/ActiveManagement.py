@@ -4,10 +4,15 @@ import yfinance as yf
 import pandas as pd
 import numpy as np
 
-def fetch_stock_data(tickers, start="2022-01-01", end="2024-01-01"):
+def fetch_stock_data(tickers, start="2024-12-20", end="2025-01-01"):
+    # 1. Download closing prices
     data = yf.download(tickers, start=start, end=end)["Close"]
-    data = data.dropna(axis=1)  # Drop any tickers with missing data
-    return data
+    # 2. Drop any tickers with missing data
+    data = data.dropna(axis=1)
+    # 3. Compute daily percentage change and drop the first NaN row
+    returns = data.pct_change().dropna()
+    return returns
+
 
 def covariance_matrix_build(calibration_data):
     returns = calibration_data.pct_change().dropna()
