@@ -39,6 +39,12 @@ def run_sd_timer(
     # styling
     apply_default_style()
 
+    # Print header for metrics
+    print("\nSteepest Descent Timing Metrics:")
+    print("-" * 70)
+    print(f"{'n':<6} {'κ':<6} {'Iterations':<12} {'Time (s)':<10} {'Final Residual':<15} {'Time/Iter (ms)':<15}")
+    print("-" * 70)
+
     # prepare the plot
     fig, ax = plt.subplots(figsize=(8,6))
 
@@ -57,20 +63,25 @@ def run_sd_timer(
             b /= norm(b)
             x0 = np.zeros(n)
 
-            # time the SD run (no history)
+            # time the SD run (with history for final residual)
             start = time.perf_counter()
-            _, _, its, _ = steepest_descent(
+            x_final, history, its, _ = steepest_descent(
                 A, b, x0,
                 tolerance=tolerance,
                 max_iterations=max_iter,
-                store_history=False
+                store_history=True
             )
             elapsed = time.perf_counter() - start
             times.append(elapsed)
 
-            print(f"κ={kappa:4d}, n={n:5d}, its={its:4d}, time={elapsed:.3e}s")
+            # Compute final residual
+            final_residual = norm(b - A @ x_final)
+            time_per_iter = (elapsed / its) * 1000  # milliseconds per iteration
 
-        # plot this κ’s curve
+            # Print detailed metrics
+            print(f"{n:<6} {kappa:<6} {its:<12} {elapsed:<10.4f} {final_residual:<15.2e} {time_per_iter:<15.2f}")
+
+        # plot this κ's curve
         ax.loglog(
             sizes,
             times,
@@ -92,10 +103,11 @@ def run_sd_timer(
     fig.savefig(out_file, dpi=300)
     plt.close(fig)
 
-    print(f"Saved timing plot → {out_file}")
+    print(f"\nSaved timing plot → {out_file}")
 
 
 if __name__ == "__main__":
+    np.random.seed(42)
     run_sd_timer(
         sizes=(10, 100, 1000),
         cond_nums=(10, 100, 1000),

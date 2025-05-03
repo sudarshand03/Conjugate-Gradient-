@@ -1,6 +1,7 @@
 # experiments/convergence_sd.py
 import os
 import sys
+import time
 
 # 1) Make project root importable
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
@@ -15,12 +16,18 @@ from models.steepest_descent import steepest_descent
 
 def run_sd_residual_experiments(
     sizes=(10, 100, 1000),
-    cond_nums=(10, 100, 1000, 10000),
+    cond_nums=(10, 100, 1000),
     tol: float = 1e-8,
-    max_iter: int = 5000
+    max_iter: int = 10000
 ):
     results_dir = os.path.abspath("results")
     os.makedirs(results_dir, exist_ok=True)
+
+    # Print header for metrics
+    print("\nSteepest Descent Convergence Metrics:")
+    print("-" * 60)
+    print(f"{'n':<6} {'κ':<6} {'Iterations':<12} {'Time (s)':<10} {'Final Residual':<15}")
+    print("-" * 60)
 
     for n in sizes:
         # 2) Create one figure & axis per n
@@ -39,16 +46,22 @@ def run_sd_residual_experiments(
             b /= norm(b)
             x0 = np.zeros(n)
 
-            # 4) Run SD up to max_iter
+            # 4) Run SD up to max_iter with timing
+            start_time = time.perf_counter()
             x_final, history, its, x_star = steepest_descent(
                 A, b, x0,
                 tolerance=tol,
                 max_iterations=max_iter,
                 store_history=True
             )
+            elapsed = time.perf_counter() - start_time
 
             # 5) Compute L2‐residuals at each iterate
             res_norms = [norm(b - A.dot(xk)) for xk in history]
+            final_residual = res_norms[-1]
+
+            # Print metrics for this case
+            print(f"{n:<6} {kappa:<6} {its:<12} {elapsed:<10.4f} {final_residual:<15.2e}")
 
             # 6) Plot them all on the same axis
             ax.semilogy(
@@ -74,9 +87,10 @@ def run_sd_residual_experiments(
         print(f"Saved: {out_path}")
 
 if __name__ == "__main__":
+    np.random.seed(42)
     run_sd_residual_experiments(
         sizes=(10, 100, 1000),
         cond_nums=(10, 100, 1000),
         tol=1e-8,
-        max_iter=5000
+        max_iter=10000
     )

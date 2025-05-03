@@ -2,6 +2,7 @@
 
 import os
 import sys
+import time
 
 # 1) Make project root importable
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
@@ -9,6 +10,7 @@ sys.path.insert(0, project_root)
 
 import numpy as np
 import matplotlib.pyplot as plt
+from numpy.linalg import norm
 
 from resources.generate_spd import make_spd_matrix, generate_spd
 from models.conjugate_gradient import conjugate_gradient
@@ -28,68 +30,62 @@ def run_cg_error_experiments(
     results_dir = os.path.abspath("results")
     os.makedirs(results_dir, exist_ok=True)
 
-    # apply_default_style()
+    # Print header for metrics
+    print("\nConjugate Gradient A-Norm Error Metrics:")
+    print("-" * 70)
+    print(f"{'n':<6} {'κ':<6} {'Iterations':<12} {'Time (s)':<10} {'Final A-Norm Error':<15} {'Time/Iter (ms)':<15}")
+    print("-" * 70)
 
     for n in sizes:
-        fig, ax = plt.subplots(figsize=(8, 6))
-
+        fig, ax = plt.subplots(figsize=(10, 6))
+        
         for kappa in cond_nums:
-            # build SPD test matrix with condition number κ
-            A = generate_spd(
-                n_dim=n,
-                condition_number=float(kappa),
-                distribution="log",
-                random_state=42
-            )
-  
-            # create a consistent RHS
-            rng = np.random.default_rng(42)
-            b = rng.standard_normal(n)
-            b /= np.linalg.norm(b)
+            # Generate test problem
+            A = make_spd_matrix(n_dim=n, condition_number=kappa, random_state=42)
+            b = np.random.randn(n)
+            b /= norm(b)
             x0 = np.zeros(n)
-
-            # run CG, capturing all iterates
-            x_cg, iterates, its, x_star = conjugate_gradient(
-                matrix=A,
-                rhs=b,
-                initial_guess=x0,
-                tolerance=tolerance,
-                max_iterations=max_iter
-            )
-
-            # compute A-norm of the error: ||e_k||_A = sqrt((x_k - x*)ᵀ A (x_k - x*))
-            error_A = [
-                np.sqrt((xk - x_star).dot(A.dot(xk - x_star)))
-                for xk in iterates
-            ]
-
-            # choose marker spacing to avoid clutter
-            markevery = max(1, len(error_A) // 20)
-
-            # plot on a semilogy scale
-            ax.semilogy(
-                np.arange(len(error_A)),
-                error_A,
-                marker='s',
-                markevery=markevery,
-                linewidth=2,
-                label=f"κ={kappa}"
-            )
-
-        ax.set_title(f"CG Error Convergence in A-norm (n={n})", pad=14)
-        ax.set_xlabel("Iteration k")
-        ax.set_ylabel(r"Error $\|x_k - x^*\|_A$")
-        ax.grid(True, which="both", linestyle="--", alpha=0.7)
-        ax.legend(title="Condition Number", loc="upper right")
-        fig.tight_layout()
-
-        out_path = os.path.join(results_dir, f"cg_error_convergence_n{n}.png")
-        fig.savefig(out_path, dpi=300)
-        plt.close(fig)
-        print(f"Saved CG A-norm error plot for n={n} → {out_path}")
-
+            
+            # Compute exact solution
+            x_star = np.linalg.solve(A, b)
+            
+            # Run CG with timing
+            start_time = time.perf_counter()
+            x_final, history, iters, _ = conjugate_gradient(
+                A, b, x0, tolerance=tolerance, max_iterations=max_iter)
+            elapsed = time.perf_counter() - start_time
+            
+            # Compute A-norm errors
+            errors = []
+            for x in history:
+                e = x - x_star
+                a_norm_error = np.sqrt(e.T @ A @ e)
+                errors.append(a_norm_error)
+            
+            final_error = errors[-1]
+            time_per_iter = (elapsed / iters) * 1000  # milliseconds per iteration
+            
+            # Print metrics
+            print(f"{n:<6} {kappa:<6} {iters:<12} {elapsed:<10.4f} {final_error:<15.2e} {time_per_iter:<15.2f}")
+            
+            # Plot convergence
+            ax.semilogy(range(len(errors)), errors, 
+                       label=f'κ={kappa}', marker='.', markevery=5)
+        
+        # Finalize plot
+        ax.grid(True)
+        ax.set_xlabel('Iteration')
+        ax.set_ylabel('A-Norm Error')
+        ax.set_title(f'CG A-Norm Error Convergence (n={n})')
+        ax.legend()
+        
+        # Save plot
+        plt.savefig(os.path.join(results_dir, f'cg_anorm_n{n}.png'), dpi=300)
+        plt.close()
+        print(f"Saved plot: cg_anorm_n{n}.png")
 
 if __name__ == "__main__":
+    np.random.seed(42)
     run_cg_error_experiments(
         sizes=(10, 100, 1000),
         cond_nums=(10, 100, 1000),
