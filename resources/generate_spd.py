@@ -121,10 +121,6 @@ def make_spd_matrix(
 
     return A
 
-# resources/generate_spd.py
-# … (rest of your file unchanged) …
-
-
 def generate_spd(
     n_dim: int,
     condition_number: float = 10.0,
@@ -218,7 +214,6 @@ def generate_spd_5clusters(
     return Q.T @ np.diag(vals) @ Q
 
 if __name__ == "__main__":
-    import numpy as np
 
     # 1) Uniform spacing, κ=100
     A1 = make_spd_matrix(50, condition_number=100.0,

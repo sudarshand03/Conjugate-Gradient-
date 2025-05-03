@@ -10,9 +10,8 @@ sys.path.insert(0, project_root)
 import numpy as np
 import matplotlib.pyplot as plt
 
-from resources.generate_spd import make_spd_matrix, generate_spd
+from resources.generate_spd import generate_spd
 from models.conjugate_gradient import conjugate_gradient
-from resources.plot_utils import apply_default_style
 
 def run_cg_error_experiments(
     sizes=(10, 100, 1000),
@@ -29,6 +28,10 @@ def run_cg_error_experiments(
     os.makedirs(results_dir, exist_ok=True)
 
     # apply_default_style()
+    print("\n Conjugate Gradient A-Norm Error Metrics")
+    print("--"*70)
+    print(f"{n:<6} {'kappa':<6} {'iters':<12} {'elapsed':<10.4f} {'final_error':<15.2e} {'time_per_iter':<15.2f}")
+
 
     for n in sizes:
         fig, ax = plt.subplots(figsize=(8, 6))
@@ -62,6 +65,9 @@ def run_cg_error_experiments(
                 np.sqrt((xk - x_star).dot(A.dot(xk - x_star)))
                 for xk in iterates
             ]
+            
+            
+            # print(f"{n:<6} {kappa:<6} {iters:<12} {elapsed:<10.4f} {final_error:<15.2e} {time_per_iter:<15.2f}")
 
             # choose marker spacing to avoid clutter
             markevery = max(1, len(error_A) // 20)
