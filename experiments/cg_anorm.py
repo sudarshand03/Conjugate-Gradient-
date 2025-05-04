@@ -13,8 +13,8 @@ import matplotlib.pyplot as plt
 from numpy.linalg import norm
 
 from resources.generate_spd import generate_spd
+from resources.generate_spd import generate_spd
 from models.conjugate_gradient import conjugate_gradient
-from resources.plot_utils import apply_default_style
 
 def run_cg_error_experiments(
     sizes=(10, 100, 1000),
@@ -90,8 +90,8 @@ def run_cg_error_experiments(
 if __name__ == "__main__":
     np.random.seed(42)
     run_cg_error_experiments(
-        sizes=(10, 100, 1000),
-        cond_nums=(10, 100, 1000),
+        sizes=(10, 100, 200, 1000),
+        cond_nums=(10, 100,200, 1000),
         tolerance=1e-8,
         max_iter=10000
     )

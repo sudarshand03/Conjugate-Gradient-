@@ -11,7 +11,7 @@ def apply_default_style() -> None:
     plt.rcParams.update({
         'font.size': 12,
         'lines.linewidth': 1,
-        'axes.labelsize': 14,
+        'axes.labelsize': 12,
         'axes.titlesize': 16,
         'legend.fontsize': 12,
         'figure.dpi': 300

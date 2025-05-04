@@ -94,3 +94,4 @@ def steepest_descent(
         return x, history[: iteration + 1], iteration, x_star
     else:
         return x, None, iteration, x_star
+    
