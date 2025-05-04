@@ -1,6 +1,7 @@
 # experiments/convergence_sd.py
 import os
 import sys
+import time
 
 # 1) Make project root importable
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
@@ -10,17 +11,23 @@ import numpy as np
 import matplotlib.pyplot as plt
 from numpy.linalg import norm
 
-from resources.generate_spd import make_spd_matrix,generate_spd
+from resources.generate_spd import generate_spd
 from models.steepest_descent import steepest_descent
 
 def run_sd_residual_experiments(
     sizes=(10, 100, 1000),
-    cond_nums=(10, 100, 1000, 10000),
+    cond_nums=(10, 100, 1000),
     tol: float = 1e-8,
-    max_iter: int = 5000
+    max_iter: int = 10000
 ):
-    results_dir = os.path.abspath("results")
+    results_dir = os.path.join(project_root, 'results', 'SD_Convergence')
     os.makedirs(results_dir, exist_ok=True)
+
+    # Print header for metrics
+    print("\nSteepest Descent Convergence Metrics:")
+    print("-" * 60)
+    print(f"{'n':<6} {'κ':<6} {'Iterations':<12} {'Time (s)':<10} {'Final Residual':<15}")
+    print("-" * 60)
 
     for n in sizes:
         # 2) Create one figure & axis per n
@@ -28,9 +35,10 @@ def run_sd_residual_experiments(
 
         for kappa in cond_nums:
             # 3) Build SPD problem
-            A = make_spd_matrix(
+            A = generate_spd(
                 n_dim=n,
                 condition_number=float(kappa),
+                distribution="log",
                 random_state=42
             )
             rng = np.random.default_rng(42)
@@ -38,26 +46,29 @@ def run_sd_residual_experiments(
             b /= norm(b)
             x0 = np.zeros(n)
 
-            # 4) Run SD up to max_iter
+            # 4) Run SD up to max_iter with timing
+            start_time = time.perf_counter()
             x_final, history, its, x_star = steepest_descent(
                 A, b, x0,
                 tolerance=tol,
                 max_iterations=max_iter,
                 store_history=True
             )
+            elapsed = time.perf_counter() - start_time
 
             # 5) Compute L2‐residuals at each iterate
             res_norms = [norm(b - A.dot(xk)) for xk in history]
-            
-            markevery = max(1, len(res_norms) // 20)
+            final_residual = res_norms[-1]
 
-            # 6) Plot them all on the same axis
-            ax.semilogy(
-                np.arange(len(res_norms)),
+            # Print metrics for this case
+            print(f"{n:<6} {kappa:<6} {its:<12} {elapsed:<10.4f} {final_residual:<15.2e}")
+
+            # 6) Plot them all on the same axis using loglog
+            ax.loglog(
+                np.arange(1, len(res_norms) + 1),  # Start from 1 to avoid log(0)
                 res_norms,
-                marker='o',
-                markevery=markevery,
-                linestyle='--',
+                marker='.',
+                linestyle='-',
                 label=f"κ={kappa}, iters={its}"
             )
 
@@ -76,9 +87,10 @@ def run_sd_residual_experiments(
         print(f"Saved: {out_path}")
 
 if __name__ == "__main__":
+    np.random.seed(42)
     run_sd_residual_experiments(
         sizes=(10, 100, 1000),
         cond_nums=(10, 100, 1000),
         tol=1e-8,
-        max_iter=5000000
+        max_iter=10000
     )

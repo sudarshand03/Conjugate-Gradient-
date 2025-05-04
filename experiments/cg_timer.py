@@ -1,4 +1,4 @@
-# experiments/sd_timer.py
+# experiments/cg_timer.py
 
 import os
 import sys
@@ -13,34 +13,34 @@ import matplotlib.pyplot as plt
 from numpy.linalg import norm
 
 from resources.generate_spd import generate_spd
-from models.steepest_descent import steepest_descent
+from models.conjugate_gradient import conjugate_gradient
 from resources.plot_utils import apply_default_style
 
 
-def run_sd_timer(
+def run_cg_timer(
     sizes=(10, 100, 1000),
     cond_nums=(10, 100, 1000),
     tolerance: float = 1e-8,
     max_iter: int = 5000
 ):
     """
-    Measure and plot SD time-to-converge vs matrix size for several κ.
+    Measure and plot CG time-to-converge vs matrix size for several κ.
 
     Args:
         sizes: tuple of matrix dimensions to test.
         cond_nums: tuple of condition numbers κ to test.
         tolerance: convergence tolerance on the residual norm.
-        max_iter: hard cap on SD iterations.
+        max_iter: hard cap on CG iterations.
     """
     # ensure results directory
-    results_dir = os.path.join(project_root, "results", "SD_Convergence")
+    results_dir = os.path.join(project_root, "results", "CG_Convergence")
     os.makedirs(results_dir, exist_ok=True)
 
     # styling
     apply_default_style()
 
     # Print header for metrics
-    print("\nSteepest Descent Timing Metrics:")
+    print("\nConjugate Gradient Timing Metrics:")
     print("-" * 70)
     print(f"{'n':<6} {'κ':<6} {'Iterations':<12} {'Time (s)':<10} {'Final Residual':<15} {'Time/Iter (ms)':<15}")
     print("-" * 70)
@@ -63,13 +63,14 @@ def run_sd_timer(
             b /= norm(b)
             x0 = np.zeros(n)
 
-            # time the SD run (with history for final residual)
+            # time the CG run
             start = time.perf_counter()
-            x_final, history, its, _ = steepest_descent(
-                A, b, x0,
+            x_final, history, its, _ = conjugate_gradient(
+                matrix=A,
+                rhs=b,
+                initial_guess=x0,
                 tolerance=tolerance,
-                max_iterations=max_iter,
-                store_history=True
+                max_iterations=max_iter
             )
             elapsed = time.perf_counter() - start
             times.append(elapsed)
@@ -93,13 +94,13 @@ def run_sd_timer(
     # finalize plot
     ax.set_xlabel("Matrix size $n$")
     ax.set_ylabel("Time to converge (s)")
-    ax.set_title("Steepest Descent Time vs Matrix Size")
+    ax.set_title("Conjugate Gradient Time vs Matrix Size")
     ax.grid(True, which='both', linestyle='--', alpha=0.7)
     ax.legend(title="Condition Number")
     fig.tight_layout()
 
     # save
-    out_file = os.path.join(results_dir, "sd_time_vs_size_multiple_kappa.png")
+    out_file = os.path.join(results_dir, "cg_time_vs_size_multiple_kappa.png")
     fig.savefig(out_file, dpi=300)
     plt.close(fig)
 
@@ -108,9 +109,9 @@ def run_sd_timer(
 
 if __name__ == "__main__":
     np.random.seed(42)
-    run_sd_timer(
+    run_cg_timer(
         sizes=(10, 100, 1000),
         cond_nums=(10, 100, 1000),
         tolerance=1e-8,
         max_iter=5000
-    )
+    ) 
