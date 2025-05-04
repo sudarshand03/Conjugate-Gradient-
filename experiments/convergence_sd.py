@@ -20,7 +20,7 @@ def run_sd_residual_experiments(
     tol: float = 1e-8,
     max_iter: int = 10000
 ):
-    results_dir = os.path.abspath("results")
+    results_dir = os.path.join(project_root, 'results', 'SD_Convergence')
     os.makedirs(results_dir, exist_ok=True)
 
     # Print header for metrics
@@ -63,11 +63,11 @@ def run_sd_residual_experiments(
             # Print metrics for this case
             print(f"{n:<6} {kappa:<6} {its:<12} {elapsed:<10.4f} {final_residual:<15.2e}")
 
-            # 6) Plot them all on the same axis
-            ax.semilogy(
-                np.arange(len(res_norms)),
+            # 6) Plot them all on the same axis using loglog
+            ax.loglog(
+                np.arange(1, len(res_norms) + 1),  # Start from 1 to avoid log(0)
                 res_norms,
-                marker=',',
+                marker='.',
                 linestyle='-',
                 label=f"κ={kappa}, iters={its}"
             )

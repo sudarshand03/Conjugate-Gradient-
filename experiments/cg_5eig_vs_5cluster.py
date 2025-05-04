@@ -1,4 +1,12 @@
-import numpy as np, matplotlib.pyplot as plt
+import os
+import sys
+
+# Make project root importable
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+sys.path.insert(0, project_root)
+
+import numpy as np
+import matplotlib.pyplot as plt
 from resources.generate_spd import generate_spd_distinct5, generate_spd_5clusters
 from models.conjugate_gradient import conjugate_gradient
 
@@ -7,6 +15,10 @@ def cg_residuals(A, b, tol=1e-10, maxiter=None):
                                           tolerance=tol,
                                           max_iterations=maxiter)
     return [np.linalg.norm(b - A.dot(xk)) for xk in its]
+
+# Ensure results directory exists
+results_dir = os.path.join(project_root, "results", "eigen_cluster")
+os.makedirs(results_dir, exist_ok=True)
 
 n = 200
 rng = np.random.default_rng(42)
@@ -32,4 +44,4 @@ plt.ylabel('Residual ‖b−Axₖ‖₂')
 plt.title(f'CG Convergence: Distinct vs Clustered Eigenvalues (n={n})')
 plt.legend()
 plt.grid(which='both', linestyle='--', alpha=0.5)
-plt.savefig('results/cg_5eig_vs_5cluster.png', dpi=300, bbox_inches='tight')
+plt.savefig(os.path.join(results_dir, 'cg_5eig_vs_5cluster.png'), dpi=300, bbox_inches='tight')

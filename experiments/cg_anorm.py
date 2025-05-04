@@ -27,7 +27,7 @@ def run_cg_error_experiments(
     run Conjugate Gradient until convergence or max_iter, then plot the
     A-norm of the error e_k = x_k - x* versus iteration k.
     """
-    results_dir = os.path.abspath("results")
+    results_dir = os.path.join(project_root, "results", "CG_Convergence")
     os.makedirs(results_dir, exist_ok=True)
 
     # Print header for metrics
@@ -58,12 +58,6 @@ def run_cg_error_experiments(
             elapsed = time.perf_counter() - start_time
             
             # Compute A-norm errors
-            # errors = []
-            # for x in history:
-            #     e = x - x_star
-            #     a_norm_error = np.sqrt(e.T @ A @ e)
-            #     errors.append(a_norm_error)
-
             error_A = [np.sqrt((xk-x_star).T @ A @ (xk-x_star)) for xk in history]
             
             final_error = error_A[-1]
@@ -72,12 +66,17 @@ def run_cg_error_experiments(
             # Print metrics
             print(f"{n:<6} {kappa:<6} {iters:<12} {elapsed:<10.4f} {final_error:<15.2e} {time_per_iter:<15.2f}")
 
-            ax.semilogy(
-                np.arange(len(error_A)), error_A,
-                label=f'κ={kappa}', marker='.', markevery=5)
+            # Use loglog instead of semilogy
+            ax.loglog(
+                np.arange(1, len(error_A) + 1),  # Start from 1 to avoid log(0)
+                error_A,
+                label=f'κ={kappa}', 
+                marker='.', 
+                markevery=5
+            )
         
         # Finalize plot
-        ax.grid(True)
+        ax.grid(True, which='both', linestyle='--', alpha=0.7)
         ax.set_xlabel('Iteration')
         ax.set_ylabel('A-Norm Error')
         ax.set_title(f'CG A-Norm Error Convergence (n={n})')
