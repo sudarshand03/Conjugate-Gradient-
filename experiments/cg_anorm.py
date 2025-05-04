@@ -27,10 +27,10 @@ def run_cg_error_experiments(
     results_dir = os.path.abspath("results")
     os.makedirs(results_dir, exist_ok=True)
 
-    # apply_default_style()
-    print("\n Conjugate Gradient A-Norm Error Metrics")
-    print("--"*70)
-    print(f"{n:<6} {'kappa':<6} {'iters':<12} {'elapsed':<10.4f} {'final_error':<15.2e} {'time_per_iter':<15.2f}")
+    # # apply_default_style()
+    # print("\n Conjugate Gradient A-Norm Error Metrics")
+    # print("--"*70)
+    # print(f"{n:<6} {'kappa':<6} {'iters':<12} {'elapsed':<10.4f} {'final_error':<15.2e} {'time_per_iter':<15.2f}")
 
 
     for n in sizes:
@@ -97,8 +97,8 @@ def run_cg_error_experiments(
 
 if __name__ == "__main__":
     run_cg_error_experiments(
-        sizes=(10, 100, 1000),
-        cond_nums=(10, 100, 1000),
+        sizes=(10, 100, 200, 1000),
+        cond_nums=(10, 100,200, 1000),
         tolerance=1e-8,
         max_iter=10000
     )

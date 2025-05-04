@@ -1,4 +1,7 @@
 # Tests/compare_cg.py
+""""
+Compare Our CG Method With Sklearn/Scipys
+"""
 
 import os
 import sys
@@ -38,7 +41,7 @@ def main() -> None:
         initial_guess=x0,
         tolerance=tol,
         max_iterations=n,
-        reorthogonalize=False
+        reorthogonalize=True,
     )
     time_my = time.perf_counter() - start
     # errors: each row of iterates_my minus the exact solution

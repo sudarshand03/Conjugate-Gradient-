@@ -13,19 +13,19 @@ project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 sys.path.insert(0, project_root)
 
 # Import your modules
-from resources.generate_spd import make_spd_matrix
+from resources.generate_spd import generate_spd
 from models.conjugate_gradient import conjugate_gradient
 
 def main() -> None:
     # Problem size & RNG seed
     n = 200
-    seed = 12345
+    seed = 42
     tol = 1e-8
 
     # -- 1) Build an SPD test matrix (e.g. with condition_number=1000)
-    A = make_spd_matrix(
+    A =generate_spd(
         n_dim=n,
-        condition_number=1e3,
+        condition_number=1000,
         distribution="log",
         random_state=seed
     )

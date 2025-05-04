@@ -10,7 +10,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from numpy.linalg import norm
 
-from resources.generate_spd import make_spd_matrix
+from resources.generate_spd import make_spd_matrix,generate_spd
 from models.steepest_descent import steepest_descent
 
 def run_sd_residual_experiments(
@@ -31,7 +31,6 @@ def run_sd_residual_experiments(
             A = make_spd_matrix(
                 n_dim=n,
                 condition_number=float(kappa),
-                distribution="linear",
                 random_state=42
             )
             rng = np.random.default_rng(42)
@@ -49,13 +48,16 @@ def run_sd_residual_experiments(
 
             # 5) Compute L2‐residuals at each iterate
             res_norms = [norm(b - A.dot(xk)) for xk in history]
+            
+            markevery = max(1, len(res_norms) // 20)
 
             # 6) Plot them all on the same axis
             ax.semilogy(
                 np.arange(len(res_norms)),
                 res_norms,
-                marker=',',
-                linestyle='-',
+                marker='o',
+                markevery=markevery,
+                linestyle='--',
                 label=f"κ={kappa}, iters={its}"
             )
 
@@ -78,5 +80,5 @@ if __name__ == "__main__":
         sizes=(10, 100, 1000),
         cond_nums=(10, 100, 1000),
         tol=1e-8,
-        max_iter=5000
+        max_iter=5000000
     )

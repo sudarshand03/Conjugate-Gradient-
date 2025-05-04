@@ -10,7 +10,7 @@ project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 sys.path.insert(0, project_root)
 
 # 2) Bring in our modules
-from resources.generate_spd import make_spd_matrix
+from resources.generate_spd import generate_spd
 from models.steepest_descent import steepest_descent
 from resources.plot_utils import apply_default_style, plot_semilogy, save_plot
 
@@ -22,7 +22,7 @@ def main() -> None:
     kappa = 10  # condition number for test SPD matrix
 
     # 3) Generate test matrix and RHS
-    A = make_spd_matrix(n_dim=n, condition_number=kappa, distribution="log", random_state=seed)
+    A = generate_spd(n_dim=n, condition_number=kappa, distribution="log", random_state=seed)
     rng = np.random.default_rng(seed)
     b = rng.standard_normal(n)
     b /= norm(b)
