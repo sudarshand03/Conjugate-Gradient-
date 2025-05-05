@@ -1,3 +1,3 @@
 # Conjugate-Gradient-Method
 
-Kashyap Challpalli, Sudarshan Damodharan, Magnus Miller
+Kashyap Challapalli, Sudarshan Damodharan, Magnus Miller
